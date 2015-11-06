@@ -95,11 +95,13 @@ window.onload = function(){
 	m.lookAt([0.0, 0.0, 5.0], [0.0, 0.0, 0.0], [0.0, 1.0, 0.0], vMatrix);
 
 	// プロジェクション座標変換行列
-	m.perspective(45, c.width / c.height, 0.1, 10.0, pMatrix);
+	m.perspective(45, c.width / c.height, 0.1, 100.0, pMatrix);
 
 	// モデル座標変換行列
-	m.translate(mMatrix, [0.5, 0.5, 0.0], mMatrix);
+        m.scale(mMatrix, [0.5, 0.5, 0.5], mMatrix);
 	m.rotate(mMatrix, Math.PI / 2, [0.0, 0.0, 1.0], mMatrix);
+	m.translate(mMatrix, [0.5, 0.5, 0.0], mMatrix);
+        
 
 	// 各行列を掛け合わせ座標変換行列を完成させる
 	m.multiply(pMatrix, vMatrix, vpMatrix);

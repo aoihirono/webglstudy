@@ -44,7 +44,8 @@ window.onload = function(){
 		var i, j, k;
 		for(i = 0; i < 100; ++i){
 			j = -1.0 + i * 0.02;
-			vPosition.push(j, 0.0, 0.0);
+                        var rad = i * 10 * Math.PI / 180;
+			vPosition.push(j, Math.sin(rad) * 0.5, 0.0);
 
 			k = hsva(i * 3.6, 1.0, 1.0, 1.0);
 			vColor.push(k[0], k[1], k[2], k[3]);

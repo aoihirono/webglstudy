@@ -38,20 +38,27 @@ window.onload = function(){
 	attStride[1] = 4;
 
 	// モデルデータ(頂点位置)
-	var vPosition = [
+	var vPosition = [];/*[
 		 0.0,  1.0,  0.0,
 		 1.0,  0.0,  0.0,
 		 0.0, -1.0,  0.0,
 		-1.0,  0.0,  0.0
-	];
-
-	// モデルデータ(頂点カラー)
-	var vColor = [
+	];*/
+        // モデルデータ(頂点カラー)
+	var vColor = [];/*[
 		 1.0, 0.0, 0.0, 1.0,
 		 0.0, 1.0, 0.0, 1.0,
 		 0.0, 0.0, 1.0, 1.0,
 		 1.0, 1.0, 1.0, 1.0
-	];
+	];*/
+        for(var i=0; i<180; i++)
+        {
+            var rad = 2 * i * Math.PI / 180;
+            vPosition.push(Math.sin(rad), Math.cos(rad), 0.0);
+            vColor.push(0.5, Math.random(), 1.0, 1.0);
+        }
+
+	
 
 	// VBOの生成
 	var attVBO = [];
@@ -111,7 +118,7 @@ window.onload = function(){
 
 	// - レンダリング -------------------------------------------------------------
 	// モデルの描画
-	gl.drawArrays(gl.POINTS, 0, 4);
+	gl.drawArrays(gl.POINTS, 0, 180);
 
 	// コンテキストの再描画
 	gl.flush();
