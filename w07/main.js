@@ -44,7 +44,7 @@ window.onload = function(){
 	attStride[2] = 4;
 
 	// ユーティリティ関数からモデルを生成(トーラス)
-	var torusData = torus(64, 64, 0.25, 0.75);
+	var torusData = torus(64, 64, 0.5, 1);
 	var vPosition = torusData.p;
 	var vNormal   = torusData.n;
 	var vColor    = torusData.c;
@@ -93,7 +93,7 @@ window.onload = function(){
 	gl.viewport(0, 0, c.width, c.height);
 
 	// canvasを初期化する色を設定する
-	gl.clearColor(0.0, 0.0, 0.0, 1.0);
+	gl.clearColor(0.3, 0.3, 0.3, 1.0);
 
 	// canvasを初期化する際の深度を設定する
 	gl.clearDepth(1.0);
@@ -102,12 +102,14 @@ window.onload = function(){
 	gl.enable(gl.DEPTH_TEST);
 	gl.depthFunc(gl.LEQUAL);
 	gl.enable(gl.CULL_FACE);
+        gl.cullFace(gl.FRONT);
 
 
 	// スクリーンの初期化やドローコール周辺をアニメーションループに入れる --------- *
 	// アニメーション用に変数を初期化
 	var count = 0;
 	var lightDirection = [0.577, 0.577, 0.577];
+
 
 
 	// - 行列の計算 ---------------------------------------------------------------

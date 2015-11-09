@@ -1,6 +1,4 @@
 var c, gl, vs, fs, run;
-var textures = [];
-var texNum;
 
 window.onload = function(){
 	// - keydown イベントへの関数の登録 -------------------------------------------
@@ -38,29 +36,27 @@ window.onload = function(){
 	attLocation[0] = gl.getAttribLocation(prg, 'position');
 	attLocation[1] = gl.getAttribLocation(prg, 'normal');
 	attLocation[2] = gl.getAttribLocation(prg, 'color');
-	attLocation[3] = gl.getAttribLocation(prg, 'texCoord');
 
 	// attributeの要素数
 	var attStride = [];
 	attStride[0] = 3;
 	attStride[1] = 3;
 	attStride[2] = 4;
-	attStride[3] = 2;
 
-	// ユーティリティ関数からモデルを生成(球体)
-	var sphereData = sphere(64, 64, 1.0, [1.0, 1.0, 1.0, 1.0]);
-	var vPosition = sphereData.p;
-	var vNormal   = sphereData.n;
-	var vColor    = sphereData.c;
-	var vTexCoord = sphereData.t;
-	var index     = sphereData.i;
+	// ユーティリティ関数からモデルを生成(トーラス)
+	var torusData = torus(64, 64, 0.2, 1, [1.0, 1.0, 1.0, 1.0]);
+	var vPosition = torusData.p;
+	var vNormal   = torusData.n;
+	var vColor    = torusData.c;
+	var index     = torusData.i;
+        
+        var m = new matIV();
 
 	// VBOの生成
 	var attVBO = [];
 	attVBO[0] = create_vbo(vPosition);
 	attVBO[1] = create_vbo(vNormal);
 	attVBO[2] = create_vbo(vColor);
-	attVBO[3] = create_vbo(vTexCoord);
 
 	// VBOのバインドと登録
 	set_attribute(attVBO, attLocation, attStride);
@@ -77,18 +73,14 @@ window.onload = function(){
 	var uniLocation = [];
 	uniLocation[0] = gl.getUniformLocation(prg, 'mvpMatrix');
 	uniLocation[1] = gl.getUniformLocation(prg, 'invMatrix');
-	uniLocation[2] = gl.getUniformLocation(prg, 'lightPosition');
-	uniLocation[3] = gl.getUniformLocation(prg, 'ambientColor');
-	uniLocation[4] = gl.getUniformLocation(prg, 'eyePosition');
-	uniLocation[5] = gl.getUniformLocation(prg, 'centerPoint');
-	uniLocation[6] = gl.getUniformLocation(prg, 'mMatrix');
-	uniLocation[7] = gl.getUniformLocation(prg, 'textureUnit');
+	uniLocation[2] = gl.getUniformLocation(prg, 'lightDirection');
+        uniLocation[3] = gl.getUniformLocation(prg, 'changeColor');
 
 
-	// - 行列の初期化 -------------------------------------------------------------
+	// - 行列の初期化 ------------------------------------------------------------- *
 	// minMatrix.js を用いた行列関連処理
 	// matIVオブジェクトを生成
-	var m = new matIV();
+	//var m = new matIV();
 
 	// 各種行列の生成と初期化
 	var mMatrix = m.identity(m.create());
@@ -104,7 +96,7 @@ window.onload = function(){
 	gl.viewport(0, 0, c.width, c.height);
 
 	// canvasを初期化する色を設定する
-	gl.clearColor(0.0, 0.0, 0.0, 1.0);
+	gl.clearColor(0.3, 0.3, 0.3, 1.0);
 
 	// canvasを初期化する際の深度を設定する
 	gl.clearDepth(1.0);
@@ -113,20 +105,19 @@ window.onload = function(){
 	gl.enable(gl.DEPTH_TEST);
 	gl.depthFunc(gl.LEQUAL);
 	gl.enable(gl.CULL_FACE);
+        gl.cullFace(gl.BACK);
 
 
-	// スクリーンの初期化やドローコール周辺をアニメーションループに入れる ---------
+	// スクリーンの初期化やドローコール周辺をアニメーションループに入れる --------- *
 	// アニメーション用に変数を初期化
 	var count = 0;
-	var lightPosition = [1.0, 1.0, 1.0];
-	var ambientColor = [0.1, 0.1, 0.1];
-	var eyePosition = [0.0, 0.0, 5.0];
-	var centerPoint = [0.0, 0.0, 0.0];
+	var lightDirection = [0.577, 0.577, 0.577];
+
 
 
 	// - 行列の計算 ---------------------------------------------------------------
 	// ビュー座標変換行列
-	m.lookAt(eyePosition, centerPoint, [0.0, 1.0, 0.0], vMatrix);
+	m.lookAt([1.0, 5.0, 5.0], [0.0, 0.0, 0.0], [0.0, 1.0, 0.0], vMatrix);
 
 	// プロジェクション座標変換行列
 	m.perspective(45, c.width / c.height, 0.1, 10.0, pMatrix);
@@ -134,14 +125,6 @@ window.onload = function(){
 	// 各行列を掛け合わせ座標変換行列
 	m.multiply(pMatrix, vMatrix, vpMatrix);
 
-
-	// - テクスチャ関連 ----------------------------------------------------------- *
-	create_texture('lenna.jpg', 0);
-        create_texture('pic2.jpg', 1);
-        texNum = 0;
-        c.addEventListener('click', function(){
-            texNum = (texNum === 0) ? 1 : 0; 
-        }, false);
 
 	// - レンダリング関数 ---------------------------------------------------------
 	// アニメーション用のフラグを立てる
@@ -153,7 +136,7 @@ window.onload = function(){
 	function render(){
 		// = ループ内初期化処理 ===================================================
 		// カウンタのインクリメント
-		count++;
+		//count++;
 		
 		// アニメーション用にカウンタからラジアンを計算
 		var rad = (count % 360) * Math.PI / 180;
@@ -161,13 +144,10 @@ window.onload = function(){
 		// canvasを初期化
 		gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 		
-		// テクスチャをバインドする
-		gl.bindTexture(gl.TEXTURE_2D, textures[texNum]);
-		
 		// = 行列の計算 =========================================================== *
 		// モデル座標変換行列
 		m.identity(mMatrix);
-		m.rotate(mMatrix, rad, [0.0, 1.0, 0.0], mMatrix);
+		m.rotate(mMatrix, rad, [0.0, 1.0, 1.0], mMatrix);
 		m.multiply(vpMatrix, mMatrix, mvpMatrix);
 		m.inverse(mMatrix, invMatrix);
 		
@@ -175,17 +155,32 @@ window.onload = function(){
 		// uniformLocationへ座標変換行列を登録
 		gl.uniformMatrix4fv(uniLocation[0], false, mvpMatrix);
 		gl.uniformMatrix4fv(uniLocation[1], false, invMatrix);
-		gl.uniform3fv(uniLocation[2], lightPosition);
-		gl.uniform3fv(uniLocation[3], ambientColor);
-		gl.uniform3fv(uniLocation[4], eyePosition);
-		gl.uniform3fv(uniLocation[5], centerPoint);
-		gl.uniformMatrix4fv(uniLocation[6], false, mMatrix);
-		gl.uniform1i(uniLocation[7], 0);
+		gl.uniform3fv(uniLocation[2], lightDirection);
+                gl.uniform4fv(uniLocation[3], [1.0, 1.0, 1.0, 1.0]);
 		
 		// = レンダリング =========================================================
 		// モデルの描画
 		gl.drawElements(gl.TRIANGLES, index.length, gl.UNSIGNED_SHORT, 0);
-		
+                
+                // = 行列の計算 =========================================================== *
+		// モデル座標変換行列
+                for(var i=0; i<10; i++){
+                    m.identity(mMatrix);
+                    m.rotate(mMatrix, rad + Math.PI * i / 10, [0.0, 1.0, 0.0], mMatrix);
+                    m.translate(mMatrix, [0.0, 0.0, 1.0], mMatrix);
+                    m.rotate(mMatrix, rad + Math.PI / 2, [0.0, 0.0, 1.0], mMatrix);
+                    m.scale(mMatrix, [0.4, 0.4, 0.4], mMatrix);
+                    m.multiply(vpMatrix, mMatrix, mvpMatrix);
+                    m.inverse(mMatrix, invMatrix);
+
+                    // = uniform 関連 ========================================================= *
+                    // uniformLocationへ座標変換行列を登録
+                    gl.uniformMatrix4fv(uniLocation[0], false, mvpMatrix);
+                    gl.uniformMatrix4fv(uniLocation[1], false, invMatrix);
+                    gl.uniform3fv(uniLocation[2], lightDirection);
+                    gl.uniform4fv(uniLocation[3], [i/20,  i/30, 1-i/10, 1.0]);
+                    gl.drawElements(gl.TRIANGLES, index.length, gl.UNSIGNED_SHORT, 0);
+                }
 		// コンテキストの再描画
 		gl.flush();
 		
@@ -194,7 +189,7 @@ window.onload = function(){
 	}
 };
 
-// - 各種ユーティリティ関数 --------------------------------------------------- *
+// - 各種ユーティリティ関数 ---------------------------------------------------
 /**
  * シェーダを生成する関数
  * @param {string} source シェーダのソースとなるテキスト
@@ -327,38 +322,3 @@ function set_attribute(vbo, attL, attS){
 		gl.vertexAttribPointer(attL[i], attS[i], gl.FLOAT, false, 0, 0);
 	}
 }
-
-/**
- * テクスチャを生成する関数
- * @param {string} source テクスチャに適用する画像ファイルのパス
- * @param {number} number テクスチャ用配列に格納するためのインデックス
- */
-function create_texture(source, number){
-	// イメージオブジェクトの生成
-	var img = new Image();
-	
-	// データのオンロードをトリガーにする
-	img.onload = function(){
-		// テクスチャオブジェクトの生成
-		var tex = gl.createTexture();
-		
-		// テクスチャをバインドする
-		gl.bindTexture(gl.TEXTURE_2D, tex);
-		
-		// テクスチャへイメージを適用
-		gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, img);
-		
-		// ミップマップを生成
-		gl.generateMipmap(gl.TEXTURE_2D);
-		
-		// テクスチャのバインドを無効化
-		gl.bindTexture(gl.TEXTURE_2D, null);
-		
-		// 生成したテクスチャを変数に代入
-		textures[number] = tex;
-	};
-	
-	// イメージオブジェクトのソースを指定
-	img.src = source;
-}
-
