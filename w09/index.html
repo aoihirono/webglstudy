@@ -20,7 +20,8 @@ uniform sampler2D texture;
 varying vec2 vTexCoord;
 
 void main(){
-	gl_FragColor = texture2D(texture, vec2(vTexCoord.x, 1.0 - vTexCoord.t));
+        vec4 c = texture2D(texture, vec2(vTexCoord.x, 1.0 - vTexCoord.t));
+	gl_FragColor = vec4(vec3((c.r+c.g+c.b)/3.0), 1.0);
 }
 		</script>
 		<script id="lightVS" type="x-shader/x-vertex">
