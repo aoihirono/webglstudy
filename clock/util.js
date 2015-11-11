@@ -124,31 +124,4 @@ function create_texture(source, number){
 	// イメージオブジェクトのソースを指定
 	img.src = source;
 }
-function create_texture2(image, number){
-	// イメージオブジェクトの生成
-	var img = new Image();
-	
-	// データのオンロードをトリガーにする
-	img.onload = function(){
-		// テクスチャオブジェクトの生成
-		var tex = gl.createTexture();
-		
-		// テクスチャをバインドする
-		gl.bindTexture(gl.TEXTURE_2D, tex);
-		
-		// テクスチャへイメージを適用
-		gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, img);
-		
-		// ミップマップを生成
-		gl.generateMipmap(gl.TEXTURE_2D);
-		
-		// テクスチャのバインドを無効化
-		gl.bindTexture(gl.TEXTURE_2D, null);
-		
-		// 生成したテクスチャを変数に代入
-		textures[number] = tex;
-	};
-	
-	// イメージオブジェクトのソースを指定
-	img = image;
-}
+

@@ -34,21 +34,18 @@ window.onload = function(){
 	// attributeLocationの取得
 	var attLocation = [];
 	attLocation[0] = gl.getAttribLocation(prg, 'position');
-	attLocation[1] = gl.getAttribLocation(prg, 'normal');
-	attLocation[2] = gl.getAttribLocation(prg, 'color');
-	attLocation[3] = gl.getAttribLocation(prg, 'texCoord');
+	attLocation[1] = gl.getAttribLocation(prg, 'color');
+	attLocation[2] = gl.getAttribLocation(prg, 'texCoord');
 
 	// attributeの要素数
 	var attStride = [];
 	attStride[0] = 3;
-	attStride[1] = 3;
-	attStride[2] = 4;
-	attStride[3] = 2;
+	attStride[1] = 4;
+	attStride[2] = 2;
 
 	// ユーティリティ関数からモデルを生成(円柱)
         var cData = cylinder(1, 0.2, 36, [1.0, 1.0, 1.0, 1.0]);
 	var vPosition = cData.p;
-	var vNormal   = cData.n;
 	var vColor    = cData.c;
         var vTexCoord = cData.t;
 	var index     = cData.i;
@@ -58,9 +55,8 @@ window.onload = function(){
 	// VBOの生成
 	var attVBO = [];
 	attVBO[0] = create_vbo(vPosition);
-	attVBO[1] = create_vbo(vNormal);
-	attVBO[2] = create_vbo(vColor);
-	attVBO[3] = create_vbo(vTexCoord);
+	attVBO[1] = create_vbo(vColor);
+	attVBO[2] = create_vbo(vTexCoord);
 
 	// VBOのバインドと登録
 	set_attribute(attVBO, attLocation, attStride);
@@ -77,8 +73,7 @@ window.onload = function(){
         var uniLocation = [];
 	uniLocation[0] = gl.getUniformLocation(prg, 'mvpMatrix');
 	uniLocation[1] = gl.getUniformLocation(prg, 'invMatrix');
-	uniLocation[2] = gl.getUniformLocation(prg, 'lightPosition');
-	uniLocation[3] = gl.getUniformLocation(prg, 'textureUnit');
+	uniLocation[2] = gl.getUniformLocation(prg, 'textureUnit');
 
 
 	// - 行列の初期化 ------------------------------------------------------------- *
@@ -114,7 +109,6 @@ window.onload = function(){
 	// スクリーンの初期化やドローコール周辺をアニメーションループに入れる --------- *
 	// アニメーション用に変数を初期化
 	var count = 0;
-	var lightPosition = [0, 0, 5];
 
 	// - 行列の計算 ---------------------------------------------------------------
 	// ビュー座標変換行列
@@ -130,12 +124,15 @@ window.onload = function(){
         tmpCanvas.width = 32;
         tmpCanvas.height = 32;
         var ctx = tmpCanvas.getContext('2d');
-        for(var i=1; i<=12; i++){
-            ctx.fillStyle = '#ff9';
-            ctx.fillRect(0,0, 32,32);
-            //ctx.fillText( ''+i , 0 , 0 ) ;
-            var image = ctx.getImageData(0, 0, 32, 32);
-            create_texture2(image, 1+i);
+        ctx.font = "24px Arial";
+        ctx.textAlign = "center";
+        for(var i=0; i<12; i++){
+            ctx.fillStyle = '#37a';
+            ctx.fillRect(0, 0, 32, 32);
+            ctx.fillStyle = '#fff';
+            if(i===0) ctx.fillText( "12" , 13 , 26 ) ;
+            else ctx.fillText( "" + i , 13 , 26 ) ;
+            create_texture(tmpCanvas.toDataURL("image/gif"), 2+i);
         }
 
 	// - レンダリング関数 ---------------------------------------------------------
@@ -179,7 +176,6 @@ window.onload = function(){
 		// uniformLocationへ座標変換行列を登録
 		gl.uniformMatrix4fv(uniLocation[0], false, mvpMatrix);
 		gl.uniformMatrix4fv(uniLocation[1], false, invMatrix);
-		gl.uniform3fv(uniLocation[2], lightPosition);
                 gl.uniform1i(uniLocation[2], 0);
 		
 		// = レンダリング =========================================================
@@ -191,10 +187,10 @@ window.onload = function(){
 		// モデル座標変換行列
                 // テクスチャをバインドする
                 for(var i=0; i<12; i++){
-                    gl.bindTexture(gl.TEXTURE_2D, textures[2+1]);
+                    gl.bindTexture(gl.TEXTURE_2D, textures[2+i]);
                     m.identity(mMatrix);
                     m.rotate(mMatrix, rad, [0.0, 0.0, 1.0], mMatrix);
-                    m.translate(mMatrix, [Math.sin(Math.PI*i/6)*0.8, Math.cos(Math.PI*i/6)*0.8, 0.0], mMatrix);
+                    m.translate(mMatrix, [Math.sin(Math.PI*i/6)*0.8, Math.cos(Math.PI*i/6)*0.8, -0.04], mMatrix);
                     m.scale(mMatrix, [0.15, 0.15, 0.5], mMatrix);
                     m.multiply(vpMatrix, mMatrix, mvpMatrix);
                     m.inverse(mMatrix, invMatrix);
@@ -203,8 +199,7 @@ window.onload = function(){
                     // uniformLocationへ座標変換行列を登録
                     gl.uniformMatrix4fv(uniLocation[0], false, mvpMatrix);
                     gl.uniformMatrix4fv(uniLocation[1], false, invMatrix);
-                    gl.uniform3fv(uniLocation[2], lightPosition);
-                    gl.uniform1i(uniLocation[3], 0);
+                    gl.uniform1i(uniLocation[2], 0);
                     gl.drawElements(gl.TRIANGLES, index.length, gl.UNSIGNED_SHORT, 0);
                 }
                 
@@ -223,9 +218,8 @@ window.onload = function(){
                 // = uniform 関連 ========================================================= *
                 // uniformLocationへ座標変換行列を登録
                 gl.uniformMatrix4fv(uniLocation[0], false, mvpMatrix);
-		gl.uniformMatrix4fv(uniLocation[1], false, invMatrix);
-		gl.uniform3fv(uniLocation[2], lightPosition);
-                gl.uniform1i(uniLocation[3], 0);
+                gl.uniformMatrix4fv(uniLocation[1], false, invMatrix);
+                gl.uniform1i(uniLocation[2], 0);
                 gl.drawElements(gl.TRIANGLES, index.length, gl.UNSIGNED_SHORT, 0);
                 
                 // 分
@@ -240,9 +234,8 @@ window.onload = function(){
                 // = uniform 関連 ========================================================= *
                 // uniformLocationへ座標変換行列を登録
                 gl.uniformMatrix4fv(uniLocation[0], false, mvpMatrix);
-		gl.uniformMatrix4fv(uniLocation[1], false, invMatrix);
-		gl.uniform3fv(uniLocation[2], lightPosition);
-                gl.uniform1i(uniLocation[3], 0);
+                gl.uniformMatrix4fv(uniLocation[1], false, invMatrix);
+                gl.uniform1i(uniLocation[2], 0);
                 gl.drawElements(gl.TRIANGLES, index.length, gl.UNSIGNED_SHORT, 0);
                 
                 // 時間
@@ -257,9 +250,8 @@ window.onload = function(){
                 // = uniform 関連 ========================================================= *
                 // uniformLocationへ座標変換行列を登録
                 gl.uniformMatrix4fv(uniLocation[0], false, mvpMatrix);
-		gl.uniformMatrix4fv(uniLocation[1], false, invMatrix);
-		gl.uniform3fv(uniLocation[2], lightPosition);
-                gl.uniform1i(uniLocation[3], 0);
+                gl.uniformMatrix4fv(uniLocation[1], false, invMatrix);
+                gl.uniform1i(uniLocation[2], 0);
                 gl.drawElements(gl.TRIANGLES, index.length, gl.UNSIGNED_SHORT, 0);
                 
 		// コンテキストの再描画
