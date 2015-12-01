@@ -34,8 +34,13 @@ window.onload = function(){
 	c = document.getElementById('canvas');
 
 	// canvasのサイズをスクリーン全体に広げる
-	c.width = 512;
-	c.height = 512;
+	c.width = window.innerWidth;
+        c.height = window.innerHeight;
+        window.onresize = function() {
+            c.width = window.innerWidth;
+            c.height = window.innerHeight;
+            gl.viewport(0, 0, c.width, c.height);
+        };
 
 	// webglコンテキストを取得
 	gl = c.getContext('webgl') || c.getContext('experimental-webgl');
@@ -214,8 +219,8 @@ window.onload = function(){
             q.toVecIII([0.0, 1.0, 0.0], qt, cam);
             q.toVecIII([4.0, 0.0, 0.0], qt, focus);
             //m.lookAt(eye, focus, cam, vMatrix);
-            //m.lookAt([4.0*Math.sin(rad), 1.0, 4.0*Math.cos(rad)], [4.0*Math.sin(rad+1.5), 0.0, 4.0*Math.cos(rad+1.5)], [0.0, 1.0, 0.0], vMatrix);
-            m.lookAt([-0.5, 1.0, 7.0], [1.5, 0.0, 3.0], [0.0, 1.0, 0.0], vMatrix);
+            m.lookAt([4.0*Math.sin(0), 1.0, 4.0*Math.cos(0)], [4.0*Math.sin(0+1.5), 0.0, 4.0*Math.cos(0+1.5)], [0.0, 1.0, 0.0], vMatrix);
+            //m.lookAt([-0.5, 1.0, 7.0], [1.5, 0.0, 3.0], [0.0, 1.0, 0.0], vMatrix);
 
             // プロジェクション座標変換行列
             m.perspective(45, c.width / c.height, 0.1, 50.0, pMatrix);
